@@ -1,28 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<title>Devcyside's Blog - Home</title>
-	<link rel="icon" href="assets/img/racoon.png" type="image/png">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta charset="UTF-8">
-	<link rel="stylesheet" href="assets/css/style.css">
-	<link rel="stylesheet" href="assets/css/style_nav.css">
+  <meta charset="UTF-8">
+  <title>Rocket Blog - Home</title>
+  <link rel="icon" href="assets/img/racoon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style_nav.css">
+  <link rel="stylesheet" href="assets/css/style_articles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
-<nav>
-	<ul>
-    	<li><a href="index.html">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="contact.html">Contacts</a></li>
-    </ul>
-</nav>
-
 <body>
-</body>
+  <header>
+    <img src="assets/img/racoon.png" alt="Racoon guy" style="width:100px;height:100px;">
 
-<footer>
+    <div class="topnav">
+      <a href="#" class="active"></a>
+      <div id="myLinks">
+        <a href="#index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contacts</a>
+      </div>
+      <a href="javascript:void(0);" class="icon" onclick="onClickCallback()">
+        <i class="fa fa-bars"></i>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="articles">
+    	<h1 style="font-size:200%;" ><b>Articles</b></h1>
+  		<article class="post_preview">
+    		<h2>STM32 – Low Power Modes: Standby</h2>
+    			<p class="date">May 1, 2025</p>
+    			<p class="excerpt"></p>
+			<a href="articles/STM32_low_pwr_modes_standby.html" class="read-more">Read more →</a>
+		</article>
+	</section>
+  </main>
+
+  <footer>
     <p>&copy; 2025 Devcyside</p>
-</footer>
+  </footer>
 
+  <script src="assets/js/scripts.js"></script>
+</body>
 </html>
