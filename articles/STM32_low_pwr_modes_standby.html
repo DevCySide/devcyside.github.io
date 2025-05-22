@@ -6,20 +6,21 @@
 	<link rel="icon" href="assets/img/racoon.png" type="image/png">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="../assets/css/style.css">
+	<link rel="stylesheet" href="../assets/css/style_articles.css">
 	<link rel="stylesheet" href="../assets/css/style_nav.css">
 </head>
 
 <body>
-	<h1>
-		STM32 – Low Power Modes: Standby
-	</h1>
-
-	<p>
+	<main>
+		<h1>
+			STM32 – Low Power Modes: Standby
+		</h1>
+	
+		<p>
 		In this article, I want to explore and organize all the information I've learned about the topic of low-power modes for a specific STM32 microcontroller family: the STM32WB55xx.
 		This microcontroller features a Cortex-M4 as the main core and a Cortex-M0+ dedicated to handling radio functions, such as Bluetooth Low Energy (BLE). It’s important to keep this architecture in mind — you’ll see why later.
-	</p>
-	<p>
+		</p>
+		<p>
 		As described in the reference manual (<a href="https://www.st.com/resource/en/reference_manual/rm0434-multiprotocol-wireless-32bit-mcu-armbased-cortexm4-with-fpu-bluetooth-lowenergy-and-802154-radio-solution-stmicroelectronics.pdf">see RM0434</a>), there are at least seven low-power modes, each designed to meet different power and performance requirements:
 		<ul>
 			<li> Low-power run
@@ -31,54 +32,54 @@
 			<li> Shutdown
 		</ul>
 		Each mode differs in how it is entered ("entry" method), the available wakeup sources, the wakeup system clock, and which clocks are affected upon entering the mode. See the table below:
-		 <img id = "table_1" src="../assets/img/lp_summary.png" alt="STM32WB55xx lp modes table" style="width:500px;height:1000px;">
-	</p>
-
-	<p>
+		 <img id = "article_1_table_1" src="../assets/img/lp_summary.png" alt="STM32WB55xx lp modes table">
+		</p>
+	
+		<p>
 		I propose grouping these modes into two categories:
 		<ul>
 			<li> <strong>Modes that retain context and resume execution after waking up</strong></li>
-				<br>These include low-power run, low-power sleep, Stop0, Stop1, and Stop2. In these modes, the MCU essentially waits in a low-power state and resumes execution from where it left off once a wakeup source is triggered.
+				These include low-power run, low-power sleep, Stop0, Stop1, and Stop2. In these modes, the MCU essentially waits in a low-power state and resumes execution from where it left off once a wakeup source is triggered.
 			<li> <strong>Modes that require a reset to exit</strong></li>
-				<br>These are Standby and Shutdown. They provide the greatest power savings, with Shutdown being the most aggressive — offering the lowest power consumption, but at the cost of losing almost all context and requiring a full reset to resume operation.
+				These are Standby and Shutdown. They provide the greatest power savings, with Shutdown being the most aggressive — offering the lowest power consumption, but at the cost of losing almost all context and requiring a full reset to resume operation.
 		</ul>
 		I chose Standby mode because it offers good power savings, supports the LSE (which I need to keep the RTC running), and — unlike Shutdown mode — it provides data retention capability.
-	</p>
-
-
-	<h2>
-		Standby Challenges
-	</h2>
-	<p>
+		</p>
+	
+	
+		<h2>
+			Standby Challenges
+		</h2>
+		<p>
 		You won't find all the information you need in the Reference Manual — some things require a lot of Googling. But even that isn't always enough — you sometimes just need to get lucky. 
-	</p>
-	<h3>
+		</p>
+		<h3>
 		Cores and RAM retention
-	</h3>
-	<p>
+		</h3>
+		<p>
 		As stated in RM0434: "Stop, Standby, and Shutdown modes are only entered when both CPUs are in CStop mode."<br>
 		So far, so good. The real challenge begins when you have to manage SRAM2, especially SRAM2a, which holds the Cortex-M4's data retention area.
-	</p>
-	<p>
+		</p>
+		<p>
 		If your application requires BLE, you need to pay close attention to the wireless stack you flash on the MCU — The entire SRAM2a (0x2003_0000 – 0x2003_7FFF) is retention-capable in Standby mode, but the use of the lower part (0x2003_0000 – ...) depends on the BLE stack, as it may be occupied by the M0+ core — which is NOT retention-capable. For example, the 'stm32wb5x_BLE_Stack_full_extended_fw.bin' has a reduced shared memory range (see Projects/STM32WB_Copro_Wireless_Binaries/STM32WB5x/Release_Notes.html).
-	</p>
-	<p>
+		</p>
+		<p>
 		In general, if you are not using the M0+ core, it is better to delete or avoid programming the wireless stack altogether.
-	</p>
-	<p>
+		</p>
+		<p>
 		As we mentioned earlier, RAM retention and the interaction between the two MCUs are critical topics. To conclude this section, we need to discuss the Option Bytes. These are dedicated bytes located in flash memory that define specific MCU behaviors and are configurable. <br>
 		The SRAM2RST option byte controls RAM retention during low-power modes and is not enabled by default. Therefore, if you need this feature, you must enable it using your preferred tool (e.g., Cube Programmer, J-Link scripts, etc.).
-	</p>
-
-
-	<h3>
-		Wake-up Sources
-	</h3>
-	<p>
-		In the "Wakeup source" column of the table (<a href="#table_1">summary table</a>), there are at least five wakeup sources, but here we focus on GPIOs and RTC.<br>
+		</p>
+	
+	
+		<h3>
+			Wake-up Sources
+		</h3>
+		<p>
+		In the "Wakeup source" column of the table (<a href="#article_1_table_1">summary table</a>), there are at least five wakeup sources, but here we focus on GPIOs and RTC.<br>
 		Before entering Standby, it’s important to define how the MCU should wake up, for example: either after a predetermined period has elapsed or when an external interrupt from an IMU occurs. These are just two of the many possible wakeup sources for our applications.
-	</p>
-	<p>
+		</p>
+		<p>
 		<strong>GPIOs</strong><br>
 		Only a few GPIOs have wake-up capability: PA0, PA2, and (for STM32WB55xx only) PC5, PC12, and PC13. <br>
 		When configuring GPIOs before entering Standby, keep in mind that you no longer work with the general-purpose I/O registers. Instead, you use the Power control registers. This means you don’t need to worry about the usual GPIO registers.<br>
@@ -90,9 +91,9 @@
 		It’s not just about wake-up — certain GPIOs may also need to maintain functionality when the system enters low-power mode.<br>
 		Depending on the hardware design, you might need to keep specific pins in a defined state — for example, to keep an external regulator enabled, hold a device in reset, etc. <br>
 		However, in Standby mode, all GPIOs are automatically switched to analog (high-impedance) mode by default, unless explicitly configured as wake-up sources or configured with a pull-down/up in the 'PWR Port X pull-down control register' and 'PWR Port X pull-up control register'.
-	</p>
-
-	<p>
+		</p>
+	
+		<p>
 		<strong>RTC</strong><br>
 		Keeping the internal RTC active in Standby mode allows you to preserve the timestamp, which can be useful. Additionally, it can serve as a periodic wake-up source — this feature is known as "Auto-wake-up mode". <br>
 		However, not everything that glitters is gold. When using the standard 32.768 kHz LSE, the RTC wake-up timer operates as a 16-bit auto-reload down-counter, which limits you to programmable wake-up intervals between 122 μs and 32 seconds. This may result in frequent wake-ups, depending on your timing needs. <br>
@@ -101,22 +102,22 @@
 			<li>Use the dedicated internal 1 Hz clock, which allows wake-up intervals ranging from 1 second up to around 36 hours, with a 1-second resolution (see section 29.4.5 – Periodic auto-wake-up of the reference manual)</li>
 			<li>Use an external low-power timer connected to a dedicated EXTI line, and configure a PWR GPIO wake-up pin to trigger the wake-up event</li>
 		</ul>
-	</p>
-
-	<p>
+		</p>
+	
+		<p>
 		After a reset, you may not always want a full wake-up. For example, if the RTC triggered the wake-up, the MCU might only need to perform a quick check—then go right back into Standby.<br>
 		On the other hand, if the wake-up was caused by a different source (e.g., a GPIO interrupt), you might need to resume full operation.<br>
 
 		Before doing anything, it’s important to determine what caused the wake-up. You can check the wake-up source using the PWR status register 1 (PWR_SR1). In code, this means reading:
 		<b>PWR->SR1</b> and checking which <b>WUFx</b> flag is set. Each WUFx bit corresponds to a configured wake-up source, allowing your application to react appropriately depending on the origin of the event.
-	</p>
-
-
-	<h3>
-		Use case with FreeRTOS
-	</h3>
-
-	<p>
+		</p>
+	
+	
+		<h3>
+			Use case with FreeRTOS
+		</h3>
+	
+		<p>
 		Everyone who works with FreeRTOS, or more generally with a Real-Time Operating System, knows the challenges that come with this approach. However, from my point of view, it also offers greater modularity and a clearer separation of concerns compared to a bare-metal approach. That said, I agree that anything can be done well—or poorly—regardless of the methodology.<br>
 		One clean strategy I liked to implement is the following:
 		<ol>
@@ -132,21 +133,22 @@
 		This part of the system must be deterministic: every task should behave predictably, and the transition to low-power mode should never fail under normal conditions. If failures do occur, they should be caught early during development. If a task becomes blocked or unresponsive, even a reset won’t necessarily fix the issue.<br>
 		Since the MCU undergoes a reset when exiting Standby mode, the system is fully reconfigured on wake-up, including clock setup and peripheral initialization.
 		Therefore, there is no need to suspend tasks or preserve their state — the entire application restarts from a known, clean state.
-	</p>
-
-	<h3>
-		Snippets
-	</h3>
-
-	<p>
-		Example 1: Checking the wake-up source<br>
-	</p>
-	<pre><code>uint32_t is_your_wakeup_src = PWR->SR1 & PWR_SR1_WUF2;
-	</code></pre>
+		</p>
 	
-	<p>Example 2: Possible Standby Entry Sequence</p>
-
-	<pre><code>void <b>standby_fun</b>(void) {
+		<h3>
+			Snippets
+		</h3>
+	
+		<p>
+		Example 1: Checking the wake-up source<br>
+		</p>
+		<pre><code>uint32_t is_your_wakeup_src = PWR->SR1 & PWR_SR1_WUF2;
+		</code></pre>
+		
+		<p>Example 2: Possible Standby Entry Sequence</p>
+	
+		<pre><code>
+	void <b>standby_fun</b>(void) {
 		__disable_irq();
 
 		LL_C2_PWR_SetPowerMode(LL_PWR_MODE_SHUTDOWN);
@@ -159,6 +161,8 @@
 		for (IRQn_Type irq = (IRQn_Type)0; irq <= MAX_IRQn; irq++) {
 			NVIC_ClearPendingIRQ(irq);
 		}
+
+		__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_All);
 
 		LL_PWR_EnableSRAM2Retention();
 
@@ -178,7 +182,8 @@
 
 		HAL_PWR_EnterSTANDBYMode();
 		/* It should never get here */
-	}</code></pre>
+	} </code></pre>
+	</main>
 
 	<footer>
     	<p>&copy; 2025 Devcyside</p>
