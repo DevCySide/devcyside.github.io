@@ -14,7 +14,7 @@ header {
 }
 
 pre {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   font-size: 0.9rem;
   white-space: pre-wrap;
@@ -23,16 +23,16 @@ pre {
   padding: 1rem;
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  font-family: monospace;
+  font-family: 'Courier New', Courier, monospace;
+  margin: 1em 0;
 }
 
 
 code {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  white-space: pre; /* Mantiene l'indentazione */
-  display: block;
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: inherit;
 }
 
 main {
