@@ -71,8 +71,8 @@ footer {
 /*Images--------*/
 #article_1_table_1 {
 	display: block;
-  	margin: 0 auto;
-  	width: 600px;
-  	height: auto;
-  	padding: 10px;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  padding: 10px;
 }
