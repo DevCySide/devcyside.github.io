@@ -1,7 +1,7 @@
 nav ul {
   list-style: none;
   display: flex;
-  justify-content: center;
+  justify-content: right;
   margin: 0;
   padding: 0;
 }
@@ -17,7 +17,7 @@ nav ul li a {
 }
 
 a:link {
-  color: green;
+  color: blue;
   background-color: transparent;
   text-decoration: none;
 }
